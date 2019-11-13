@@ -196,7 +196,7 @@ class PhoneInfo
      *
      * @throws NumberParseException
      */
-    public function search(string $digits, string $region = 'RU'): array
+    public function search(string $digits, string $region = 'RU'): SearchResult
     {
         try {
             $this->prepare();
@@ -231,21 +231,21 @@ class PhoneInfo
             'where data.region_id = regions.id and data.operator_id = operators.id and '.$phone.' between number_min and number_max';
         $st = $this->db->query($query);
 
-        $result = $st->fetch();
-        if (! $result) {
+        $data = $st->fetch();
+        if (! $data) {
             return ['code' => -3, 'err' => 'Ничего не найдено'];
         }
 
-        $result = array_merge(['phone' => $phone], $result);
+        $data = array_merge(['phone' => $phone], $data);
 
         /**
          * add region data
          */
         $st = $this->db->prepare('select type, data from region_data where region_id = ?');
-        $st->execute([$result['region_id']]);
-        $result['region'] = $st->fetchAll(PDO::FETCH_KEY_PAIR);
+        $st->execute([$data['region_id']]);
+        $data['region'] = $st->fetchAll(PDO::FETCH_KEY_PAIR);
 
-        return $result;
+        return $this->formatDataToResult($data);
     }
 
     public function update()
@@ -616,5 +616,41 @@ class PhoneInfo
                 '[dadata] Адрес стандартизирован: '.$search, ['keys' => array_keys($regionData)]
             );
         }
+    }
+
+    private function formatDataToResult(array $data): SearchResult
+    {
+        $result = new SearchResult();
+        if(isset($data['region'])) {
+            $region = new RegionResult();
+            $region->setCountry($data['region']['country']);
+            $region->setCountryIsoCode($data['region']['country_iso_code']);
+            $region->setFederalDistrict($data['region']['federal_district']);
+            $region->setFiasCode($data['region']['fias_code']);
+            $region->setFiasLevel($data['region']['fias_level']);
+            $region->setGeoLat($data['region']['geo_lat']);
+            $region->setGeoLon($data['region']['geo_lon']);
+            $region->setKladrId($data['region']['kladr_id']);
+            $region->setOkato($data['region']['okato']);
+            $region->setOktmo($data['region']['oktmo']);
+            $region->setPostalCode($data['region']['postal_code']);
+            $region->setRegionName($data['region']['region']);
+            $region->setRegionFiasId($data['region']['region_fias_id']);
+            $region->setRegionIsoCode($data['region']['region_iso_code']);
+            $region->setRegionKladrId($data['region']['region_kladr_id']);
+            $region->setRegionType($data['region']['region_type']);
+            $region->setResult($data['region']['result']);
+            $region->setTimezone($data['region']['timezone']);
+            $region->setUpdated($data['region']['updated']);
+            $result->setRegion($region);
+            $result->setRegionId($data['region_id']);
+        }
+
+        $result->setCode($data['code']);
+        $result->setNumberMax($data['number_max']);
+        $result->setNumberMin($data['number_min']);
+        $result->setOperatorId($data['operator_id']);
+        $result->setOperatorName($data['operator']);
+        return $result;
     }
 }

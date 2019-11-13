@@ -1,56 +1,63 @@
 # Phone standardization library
-**PhoneInfo** is an php library to get information by russian phone number.
+**PhoneInfo** is a php library to get information by russian phone number.
 
 ## Goal
-Goal of this project is get information about russian phone easy and free. 
-Regional information takes from https://dadata.ru
+Goal of this project is to get information about russian phone easy and free. 
+Regional information taken from https://dadata.ru
 
 ## Examples
 Examples located at example directory.
 
 ## Base
-Database stored localy (storage/default.sqlite) in sqlite3 database.
-At this time only sqlite3 (PDO) allowed to storage data.
+Database stored locally (storage/default.sqlite) in sqlite3 database.
+For now only sqlite3 (PDO) is supported.
 
 ## Usage
 
 - Installation via composer
-```composer require alexmorbo/phoneinfo```
+```
+composer require alexmorbo/phoneinfo
+```
 - Create library object
-```$library = new PhoneInfo();```
+```
+use PhoneLib\PhoneInfo;
+$library = new PhoneInfo();
+```
 - Get information about phone
-```$info = $library->search('79213333333');```
+```
+$info = $library->search('79213333333');
+```
 - Profit
 ```
-Array
+PhoneLib\SearchResult Object
 (
-    [code] => 921
-    [number_min] => 79213000000
-    [number_max] => 79214499999
-    [region_id] => 2105
-    [operator_id] => 14
-    [operator] => ПАО "МегаФон"
-    [region] => Array
+    [code:PhoneLib\SearchResult:private] => 921
+    [numberMin:PhoneLib\SearchResult:private] => 79213000000
+    [numberMax:PhoneLib\SearchResult:private] => 79214499999
+    [regionId:PhoneLib\SearchResult:private] => 2105
+    [operatorId:PhoneLib\SearchResult:private] => 14
+    [operatorName:PhoneLib\SearchResult:private] => ПАО "МегаФон"
+    [region:PhoneLib\SearchResult:private] => PhoneLib\RegionResult Object
         (
-            [country] => Россия
-            [country_iso_code] => RU
-            [federal_district] => Северо-Западный
-            [fias_code] => 78000000000000000000000
-            [fias_level] => 1
-            [geo_lat] => 59.9391313
-            [geo_lon] => 30.3159004
-            [kladr_id] => 7800000000000
-            [okato] => 40000000000
-            [oktmo] => 40000000
-            [postal_code] => 190000
-            [region] => Санкт-Петербург
-            [region_fias_id] => c2deb16a-0330-4f05-821f-1d09c93331e6
-            [region_iso_code] => RU-SPE
-            [region_kladr_id] => 7800000000000
-            [region_type] => г
-            [result] => г Санкт-Петербург
-            [timezone] => UTC+3
-            [updated] => 1573643679
+            [country:PhoneLib\RegionResult:private] => Россия
+            [countryIsoCode:PhoneLib\RegionResult:private] => RU
+            [federalDistrict:PhoneLib\RegionResult:private] => Северо-Западный
+            [fiasCode:PhoneLib\RegionResult:private] => 78000000000000000000000
+            [fiasLevel:PhoneLib\RegionResult:private] => 1
+            [geoLat:PhoneLib\RegionResult:private] => 59
+            [geoLon:PhoneLib\RegionResult:private] => 30
+            [kladrId:PhoneLib\RegionResult:private] => 7800000000000
+            [okato:PhoneLib\RegionResult:private] => 40000000000
+            [oktmo:PhoneLib\RegionResult:private] => 40000000
+            [postalCode:PhoneLib\RegionResult:private] => 190000
+            [regionName:PhoneLib\RegionResult:private] => Санкт-Петербург
+            [regionFiasId:PhoneLib\RegionResult:private] => c2deb16a-0330-4f05-821f-1d09c93331e6
+            [regionIsoCode:PhoneLib\RegionResult:private] => RU-SPE
+            [regionKladrId:PhoneLib\RegionResult:private] => 7800000000000
+            [regionType:PhoneLib\RegionResult:private] => г
+            [result:PhoneLib\RegionResult:private] => г Санкт-Петербург
+            [timezone:PhoneLib\RegionResult:private] => UTC+3
+            [updated:PhoneLib\RegionResult:private] => 1573643679
         )
 
 )

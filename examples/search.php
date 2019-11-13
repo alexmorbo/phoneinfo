@@ -12,7 +12,7 @@ $logger->pushHandler(new StreamHandler('php://stdout', Logger::DEBUG));
 
 $options = [
     'logger' => $logger,
-    'libphonenumber' => true,
+//    'libphonenumber' => true,
 //    'libphonenumber' => PhoneNumberUtil::getInstance(),
 ];
 
