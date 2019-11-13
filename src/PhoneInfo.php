@@ -236,6 +236,8 @@ class PhoneInfo
             return ['code' => -3, 'err' => 'Ничего не найдено'];
         }
 
+        $result = array_merge(['phone' => $phone], $result);
+
         /**
          * add region data
          */
