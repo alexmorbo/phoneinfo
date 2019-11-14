@@ -185,20 +185,7 @@ class PhoneInfo
      * @param string $digits
      * @param string $region
      *
-     * @return array массив из элементов:
-     * <ul>
-     * <li><b>code</b> - код ABC/DEF или код ошибки
-     * <li><b>err</b> - текстовое описание ошибки (отсутствует, если нет ошибок)
-     * <li><b>reg_code</b> - код субъекта РФ, '00' если однозначно не определен, например, для кодов 800
-     * <li><b>region</b> - название субъекта РФ
-     * <li><b>region_orig</b> - оригинальное название региона, из данных Россвязи, например "г. Орел|Орловская обл."
-     * <li><b>oper</b> - оператор связи
-     * <li><b>number_count</b> - колмчество номеров, выделенных оператору в этом диапазоне
-     * <li><b>number_min</b> - первый номер диапазона
-     * <li><b>number_max</b> - последний номер диапазона
-     * </ul>
-     *
-     * @throws NumberParseException
+     * @return SearchResult
      */
     public function search(string $digits, string $region = 'RU'): SearchResult
     {
