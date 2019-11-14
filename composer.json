@@ -10,12 +10,12 @@
         "ext-pdo": "*",
         "ext-json": "*",
         "psr/log": "^1.1",
-        "guzzlehttp/guzzle": "~6.0"
+        "guzzlehttp/guzzle": "~6.0",
+        "giggsey/libphonenumber-for-php": "^8.10"
     },
     "require-dev": {
         "symfony/var-dumper": "^4.3",
-        "monolog/monolog": "^2.0",
-        "giggsey/libphonenumber-for-php": "^8.10"
+        "monolog/monolog": "^2.0"
     },
     "authors": [
         {

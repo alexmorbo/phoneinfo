@@ -7,6 +7,7 @@ namespace PhoneLib;
 use Exception;
 use GuzzleHttp\Client;
 use libphonenumber\NumberParseException;
+use libphonenumber\PhoneNumberFormat;
 use libphonenumber\PhoneNumberUtil;
 use PDO;
 use PDOException;
@@ -46,7 +47,6 @@ class PhoneInfo
         'logger' => null,
         'db_type' => self::DB_SQLITE3,
         'db_path' => __DIR__.'/../storage/default.sqlite',
-        'libphonenumber' => false,
         'dadata' => false,
     ];
 
@@ -91,20 +91,8 @@ class PhoneInfo
         /**
          * Utils
          */
-        if ($this->options['libphonenumber']) {
-            switch ($this->options['libphonenumber']) {
-                case true:
-                    $this->libphonenumber = PhoneNumberUtil::getInstance();
-                    break;
-                case $this->options['libphonenumber'] instanceof PhoneNumberUtil:
-                    $this->libphonenumber = $this->options['libphonenumber'];
-                    break;
-                case false:
-                    break;
-                default:
-                    throw new Exception('libphonenumber initial error');
-            }
-        }
+        $this->libphonenumber = PhoneNumberUtil::getInstance();
+
         if (
             is_array($this->options['dadata']) &&
             !empty($this->options['dadata']['api_key']) &&
@@ -199,35 +187,17 @@ class PhoneInfo
             return $result;
         }
 
-        $this->logger->debug('Ищем '.$digits, [
-            'libphonenumber' => ! is_null($this->libphonenumber)
-        ]);
+        $this->logger->debug('Ищем '.$digits);
 
-        switch (true) {
-            case $this->libphonenumber !== null:
-                try {
-                    $phoneData = $this->libphonenumber->parse($digits, $region);
-                    $phone = $phoneData->getCountryCode() . $phoneData->getNationalNumber();
-                } catch (Exception $e) {
-                    $result = new SearchResult();
-                    $result->setCode(-1)
-                           ->setErr('LibPhoneNumber: '.$e->getMessage());
+        try {
+            $phoneData = $this->libphonenumber->parse($digits, $region);
+            $phone = $phoneData->getCountryCode() . $phoneData->getNationalNumber();
+        } catch (Exception $e) {
+            $result = new SearchResult();
+            $result->setCode(-1)
+                ->setErr('LibPhoneNumber: '.$e->getMessage());
 
-                    return $result;
-                }
-                break;
-
-            default:
-                $number = preg_replace("/^\+/", '', $digits);
-                if (!preg_match("/^(7|8)([0-9]{10})$/", $number, $regs)) {
-                    $result = new SearchResult();
-                    $result->setCode(-1)
-                           ->setErr('Неверный формат номера');
-
-                    return $result;
-                }
-                $phone = '7'.$regs[2];
-                break;
+            return $result;
         }
 
         $query = 'select data.code, data.number_min, data.number_max, region_id, operator_id, operator from data, regions, operators '.
@@ -243,7 +213,14 @@ class PhoneInfo
             return $result;
         }
 
-        $data = array_merge(['phone' => $phone], $data);
+        $data = array_merge([
+            'phone' => $phone,
+            'countryCode' => $phoneData->getCountryCode(),
+            'format' => [
+                'national' => $this->libphonenumber->format($phoneData, PhoneNumberFormat::NATIONAL),
+                'international' => $this->libphonenumber->format($phoneData, PhoneNumberFormat::INTERNATIONAL),
+            ],
+        ], $data);
 
         /**
          * add region data
@@ -653,7 +630,11 @@ class PhoneInfo
             $result->setRegion($region);
         }
 
-        $result->setCode($data['code'] ?? null)
+        $result->setCode($data['code'])
+               ->setNumber($data['phone'])
+               ->setCountryCode($data['countryCode'])
+               ->setNationalFormat($data['format']['national'] ?? null)
+               ->setInternationalFormat($data['format']['international'] ?? null)
                ->setRegionId($data['region_id'] ?? null)
                ->setNumberMax($data['number_max'] ?? null)
                ->setNumberMin($data['number_min'] ?? null)

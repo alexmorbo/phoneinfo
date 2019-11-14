@@ -12,8 +12,6 @@ $logger->pushHandler(new StreamHandler('php://stdout', Logger::DEBUG));
 
 $options = [
     'logger' => $logger,
-//    'libphonenumber' => true,
-//    'libphonenumber' => PhoneNumberUtil::getInstance(),
 ];
 
 $library = new PhoneInfo($options);

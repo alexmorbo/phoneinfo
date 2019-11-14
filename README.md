@@ -31,33 +31,38 @@ $info = $library->search('79213333333');
 ```
 PhoneLib\SearchResult Object
 (
-    [code:PhoneLib\SearchResult:private] => 921
-    [numberMin:PhoneLib\SearchResult:private] => 79213000000
-    [numberMax:PhoneLib\SearchResult:private] => 79214499999
-    [regionId:PhoneLib\SearchResult:private] => 2105
-    [operatorId:PhoneLib\SearchResult:private] => 14
-    [operatorName:PhoneLib\SearchResult:private] => ПАО "МегаФон"
+    [code:PhoneLib\SearchResult:private] => 901
+    [err:PhoneLib\SearchResult:private] =>
+    [number:PhoneLib\SearchResult:private] => 79014315596
+    [countryCode:PhoneLib\SearchResult:private] => 7
+    [nationalFormat:PhoneLib\SearchResult:private] => 8 (901) 431-55-96
+    [internationalFormat:PhoneLib\SearchResult:private] => +7 901 431-55-96
+    [numberMin:PhoneLib\SearchResult:private] => 79014300000
+    [numberMax:PhoneLib\SearchResult:private] => 79014399999
+    [regionId:PhoneLib\SearchResult:private] => 3408
+    [operatorId:PhoneLib\SearchResult:private] => 8
+    [operatorName:PhoneLib\SearchResult:private] => ООО "Т2 Мобайл"
     [region:PhoneLib\SearchResult:private] => PhoneLib\RegionResult Object
         (
             [country:PhoneLib\RegionResult:private] => Россия
             [countryIsoCode:PhoneLib\RegionResult:private] => RU
-            [federalDistrict:PhoneLib\RegionResult:private] => Северо-Западный
-            [fiasCode:PhoneLib\RegionResult:private] => 78000000000000000000000
+            [federalDistrict:PhoneLib\RegionResult:private] => Уральский
+            [fiasCode:PhoneLib\RegionResult:private] => 66000000000000000000000
             [fiasLevel:PhoneLib\RegionResult:private] => 1
-            [geoLat:PhoneLib\RegionResult:private] => 59
-            [geoLon:PhoneLib\RegionResult:private] => 30
-            [kladrId:PhoneLib\RegionResult:private] => 7800000000000
-            [okato:PhoneLib\RegionResult:private] => 40000000000
-            [oktmo:PhoneLib\RegionResult:private] => 40000000
-            [postalCode:PhoneLib\RegionResult:private] => 190000
-            [regionName:PhoneLib\RegionResult:private] => Санкт-Петербург
-            [regionFiasId:PhoneLib\RegionResult:private] => c2deb16a-0330-4f05-821f-1d09c93331e6
-            [regionIsoCode:PhoneLib\RegionResult:private] => RU-SPE
-            [regionKladrId:PhoneLib\RegionResult:private] => 7800000000000
-            [regionType:PhoneLib\RegionResult:private] => г
-            [result:PhoneLib\RegionResult:private] => г Санкт-Петербург
-            [timezone:PhoneLib\RegionResult:private] => UTC+3
-            [updated:PhoneLib\RegionResult:private] => 1573643679
+            [geoLat:PhoneLib\RegionResult:private] =>
+            [geoLon:PhoneLib\RegionResult:private] =>
+            [kladrId:PhoneLib\RegionResult:private] => 6600000000000
+            [okato:PhoneLib\RegionResult:private] => 65000000000
+            [oktmo:PhoneLib\RegionResult:private] =>
+            [postalCode:PhoneLib\RegionResult:private] => 620000
+            [regionName:PhoneLib\RegionResult:private] => Свердловская
+            [regionFiasId:PhoneLib\RegionResult:private] => 92b30014-4d52-4e2e-892d-928142b924bf
+            [regionIsoCode:PhoneLib\RegionResult:private] => RU-SVE
+            [regionKladrId:PhoneLib\RegionResult:private] => 6600000000000
+            [regionType:PhoneLib\RegionResult:private] => обл
+            [result:PhoneLib\RegionResult:private] => Свердловская обл
+            [timezone:PhoneLib\RegionResult:private] => UTC+5
+            [updated:PhoneLib\RegionResult:private] => 1573643700
         )
 
 )

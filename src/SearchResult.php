@@ -11,7 +11,7 @@ namespace PhoneLib;
 class SearchResult
 {
     /**
-     * @var int|null
+     * @var int
      */
     private $code;
 
@@ -19,6 +19,26 @@ class SearchResult
      * @var string|null
      */
     private $err;
+
+    /**
+     * @var string
+     */
+    private $number;
+
+    /**
+     * @var int
+     */
+    private $countryCode;
+
+    /**
+     * @var string|null
+     */
+    private $nationalFormat;
+
+    /**
+     * @var string|null
+     */
+    private $internationalFormat;
 
     /**
      * @var int|null
@@ -46,9 +66,9 @@ class SearchResult
     private $region;
 
     /**
-     * @return int|null
+     * @return int
      */
-    public function getCode(): ?int
+    public function getCode(): int
     {
         return $this->code;
     }
@@ -57,7 +77,7 @@ class SearchResult
      * @param int|null $code
      * @return SearchResult
      */
-    public function setCode(?int $code): SearchResult
+    public function setCode(int $code): SearchResult
     {
         $this->code = $code;
 
@@ -79,6 +99,82 @@ class SearchResult
     public function setErr(?string $err): SearchResult
     {
         $this->err = $err;
+
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getNumber(): string
+    {
+        return $this->number;
+    }
+
+    /**
+     * @param string $number
+     * @return SearchResult
+     */
+    public function setNumber(string $number): SearchResult
+    {
+        $this->number = $number;
+
+        return $this;
+    }
+
+    /**
+     * @return int
+     */
+    public function getCountryCode(): int
+    {
+        return $this->countryCode;
+    }
+
+    /**
+     * @param int $countryCode
+     * @return SearchResult
+     */
+    public function setCountryCode(int $countryCode): SearchResult
+    {
+        $this->countryCode = $countryCode;
+
+        return $this;
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getNationalFormat(): ?string
+    {
+        return $this->nationalFormat;
+    }
+
+    /**
+     * @param string|null $nationalFormat
+     * @return SearchResult
+     */
+    public function setNationalFormat(?string $nationalFormat): SearchResult
+    {
+        $this->nationalFormat = $nationalFormat;
+
+        return $this;
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getInternationalFormat(): ?string
+    {
+        return $this->internationalFormat;
+    }
+
+    /**
+     * @param string|null $internationalFormat
+     * @return SearchResult
+     */
+    public function setInternationalFormat(?string $internationalFormat): SearchResult
+    {
+        $this->internationalFormat = $internationalFormat;
 
         return $this;
     }
