@@ -14,6 +14,12 @@ class SearchResult
      * @var int|null
      */
     private $code;
+
+    /**
+     * @var string|null
+     */
+    private $err;
+
     /**
      * @var int|null
      */
@@ -49,10 +55,32 @@ class SearchResult
 
     /**
      * @param int|null $code
+     * @return SearchResult
      */
-    public function setCode(?int $code): void
+    public function setCode(?int $code): self
     {
         $this->code = $code;
+
+        return $this;
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getErr(): ?string
+    {
+        return $this->err;
+    }
+
+    /**
+     * @param string|null $err
+     * @return SearchResult
+     */
+    public function setErr(?string $err): self
+    {
+        $this->err = $err;
+
+        return $this;
     }
 
     /**
@@ -65,10 +93,13 @@ class SearchResult
 
     /**
      * @param int|null $numberMin
+     * @return SearchResult
      */
-    public function setNumberMin(?int $numberMin): void
+    public function setNumberMin(?int $numberMin): self
     {
         $this->numberMin = $numberMin;
+
+        return $this;
     }
 
     /**
@@ -81,10 +112,13 @@ class SearchResult
 
     /**
      * @param int|null $numberMax
+     * @return SearchResult
      */
-    public function setNumberMax(?int $numberMax): void
+    public function setNumberMax(?int $numberMax): self
     {
         $this->numberMax = $numberMax;
+
+        return $this;
     }
 
     /**
@@ -97,10 +131,13 @@ class SearchResult
 
     /**
      * @param int|null $regionId
+     * @return SearchResult
      */
-    public function setRegionId(?int $regionId): void
+    public function setRegionId(?int $regionId): self
     {
         $this->regionId = $regionId;
+
+        return $this;
     }
 
     /**
@@ -113,10 +150,13 @@ class SearchResult
 
     /**
      * @param int|null $operatorId
+     * @return SearchResult
      */
-    public function setOperatorId(?int $operatorId): void
+    public function setOperatorId(?int $operatorId): self
     {
         $this->operatorId = $operatorId;
+
+        return $this;
     }
 
     /**
@@ -129,10 +169,13 @@ class SearchResult
 
     /**
      * @param string|null $operatorName
+     * @return SearchResult
      */
-    public function setOperatorName(?string $operatorName): void
+    public function setOperatorName(?string $operatorName): self
     {
         $this->operatorName = $operatorName;
+
+        return $this;
     }
 
     /**
@@ -145,9 +188,12 @@ class SearchResult
 
     /**
      * @param RegionResult|null $region
+     * @return SearchResult
      */
-    public function setRegion(?RegionResult $region): void
+    public function setRegion(?RegionResult $region): self
     {
         $this->region = $region;
+
+        return $this;
     }
 }

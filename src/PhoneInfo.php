@@ -13,6 +13,10 @@ use PDOException;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
 
+/**
+ * Class PhoneInfo
+ * @package PhoneLib
+ */
 class PhoneInfo
 {
     /**
@@ -201,7 +205,11 @@ class PhoneInfo
         try {
             $this->prepare();
         } catch (Exception $e) {
-            return ['code' => -1, 'err' => $e->getMessage()];
+            $result = new SearchResult();
+            $result->setCode(-2)
+                   ->setErr($e->getMessage());
+
+            return $result;
         }
 
         $this->logger->debug('Ищем '.$digits, [
@@ -214,14 +222,22 @@ class PhoneInfo
                     $phoneData = $this->libphonenumber->parse($digits, $region);
                     $phone = $phoneData->getCountryCode() . $phoneData->getNationalNumber();
                 } catch (Exception $e) {
-                    return ['code' => -1, 'err' => 'LibPhoneNumber: '.$e->getMessage()];
+                    $result = new SearchResult();
+                    $result->setCode(-1)
+                           ->setErr('LibPhoneNumber: '.$e->getMessage());
+
+                    return $result;
                 }
                 break;
 
             default:
                 $number = preg_replace("/^\+/", '', $digits);
                 if (!preg_match("/^(7|8)([0-9]{10})$/", $number, $regs)) {
-                    return ['code' => -1, 'err' => 'Неверный формат номера'];
+                    $result = new SearchResult();
+                    $result->setCode(-1)
+                           ->setErr('Неверный формат номера');
+
+                    return $result;
                 }
                 $phone = '7'.$regs[2];
                 break;
@@ -233,7 +249,11 @@ class PhoneInfo
 
         $data = $st->fetch();
         if (! $data) {
-            return ['code' => -3, 'err' => 'Ничего не найдено'];
+            $result = new SearchResult();
+            $result->setCode(-3)
+                   ->setErr('Ничего не найдено');
+
+            return $result;
         }
 
         $data = array_merge(['phone' => $phone], $data);

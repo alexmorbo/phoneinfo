@@ -3,7 +3,10 @@
 
 namespace PhoneLib;
 
-
+/**
+ * Class RegionResult
+ * @package PhoneLib
+ */
 class RegionResult
 {
     /**
@@ -93,10 +96,13 @@ class RegionResult
 
     /**
      * @param string|null $country
+     * @return RegionResult
      */
-    public function setCountry(?string $country): void
+    public function setCountry(?string $country): self
     {
         $this->country = $country;
+
+        return $this;
     }
 
     /**
@@ -109,10 +115,13 @@ class RegionResult
 
     /**
      * @param string|null $countryIsoCode
+     * @return RegionResult
      */
-    public function setCountryIsoCode(?string $countryIsoCode): void
+    public function setCountryIsoCode(?string $countryIsoCode): self
     {
         $this->countryIsoCode = $countryIsoCode;
+
+        return $this;
     }
 
     /**
@@ -125,10 +134,13 @@ class RegionResult
 
     /**
      * @param string|null $federalDistrict
+     * @return RegionResult
      */
-    public function setFederalDistrict(?string $federalDistrict): void
+    public function setFederalDistrict(?string $federalDistrict): self
     {
         $this->federalDistrict = $federalDistrict;
+
+        return $this;
     }
 
     /**
@@ -145,6 +157,8 @@ class RegionResult
     public function setFiasCode(?string $fiasCode): void
     {
         $this->fiasCode = $fiasCode;
+
+        return $this;
     }
 
     /**
@@ -157,10 +171,13 @@ class RegionResult
 
     /**
      * @param int|null $fiasLevel
+     * @return RegionResult
      */
-    public function setFiasLevel(?int $fiasLevel): void
+    public function setFiasLevel(?int $fiasLevel): self
     {
         $this->fiasLevel = $fiasLevel;
+
+        return $this;
     }
 
     /**
@@ -173,10 +190,13 @@ class RegionResult
 
     /**
      * @param int|null $geoLat
+     * @return RegionResult
      */
-    public function setGeoLat(?int $geoLat): void
+    public function setGeoLat(?int $geoLat): self
     {
         $this->geoLat = $geoLat;
+
+        return $this;
     }
 
     /**
@@ -189,10 +209,13 @@ class RegionResult
 
     /**
      * @param int|null $geoLon
+     * @return RegionResult
      */
-    public function setGeoLon(?int $geoLon): void
+    public function setGeoLon(?int $geoLon): self
     {
         $this->geoLon = $geoLon;
+
+        return $this;
     }
 
     /**
@@ -205,10 +228,13 @@ class RegionResult
 
     /**
      * @param int|null $kladrId
+     * @return RegionResult
      */
-    public function setKladrId(?int $kladrId): void
+    public function setKladrId(?int $kladrId): self
     {
         $this->kladrId = $kladrId;
+
+        return $this;
     }
 
     /**
@@ -221,10 +247,13 @@ class RegionResult
 
     /**
      * @param int|null $okato
+     * @return RegionResult
      */
-    public function setOkato(?int $okato): void
+    public function setOkato(?int $okato): self
     {
         $this->okato = $okato;
+
+        return $this;
     }
 
     /**
@@ -237,10 +266,13 @@ class RegionResult
 
     /**
      * @param int|null $oktmo
+     * @return RegionResult
      */
-    public function setOktmo(?int $oktmo): void
+    public function setOktmo(?int $oktmo): self
     {
         $this->oktmo = $oktmo;
+
+        return $this;
     }
 
     /**
@@ -253,10 +285,13 @@ class RegionResult
 
     /**
      * @param int|null $postalCode
+     * @return RegionResult
      */
-    public function setPostalCode(?int $postalCode): void
+    public function setPostalCode(?int $postalCode): self
     {
         $this->postalCode = $postalCode;
+
+        return $this;
     }
 
     /**
@@ -269,10 +304,13 @@ class RegionResult
 
     /**
      * @param string|null $regionName
+     * @return RegionResult
      */
-    public function setRegionName(?string $regionName): void
+    public function setRegionName(?string $regionName): self
     {
         $this->regionName = $regionName;
+
+        return $this;
     }
 
     /**
@@ -285,10 +323,13 @@ class RegionResult
 
     /**
      * @param string|null $regionFiasId
+     * @return RegionResult
      */
-    public function setRegionFiasId(?string $regionFiasId): void
+    public function setRegionFiasId(?string $regionFiasId): self
     {
         $this->regionFiasId = $regionFiasId;
+
+        return $this;
     }
 
     /**
@@ -301,10 +342,13 @@ class RegionResult
 
     /**
      * @param string|null $regionIsoCode
+     * @return RegionResult
      */
-    public function setRegionIsoCode(?string $regionIsoCode): void
+    public function setRegionIsoCode(?string $regionIsoCode): self
     {
         $this->regionIsoCode = $regionIsoCode;
+
+        return $this;
     }
 
     /**
@@ -317,10 +361,13 @@ class RegionResult
 
     /**
      * @param int|null $regionKladrId
+     * @return RegionResult
      */
-    public function setRegionKladrId(?int $regionKladrId): void
+    public function setRegionKladrId(?int $regionKladrId): self
     {
         $this->regionKladrId = $regionKladrId;
+
+        return $this;
     }
 
     /**
@@ -333,10 +380,13 @@ class RegionResult
 
     /**
      * @param string|null $regionType
+     * @return RegionResult
      */
-    public function setRegionType(?string $regionType): void
+    public function setRegionType(?string $regionType): self
     {
         $this->regionType = $regionType;
+
+        return $this;
     }
 
     /**
@@ -349,10 +399,13 @@ class RegionResult
 
     /**
      * @param string|null $result
+     * @return RegionResult
      */
-    public function setResult(?string $result): void
+    public function setResult(?string $result): self
     {
         $this->result = $result;
+
+        return $this;
     }
 
     /**
@@ -365,10 +418,13 @@ class RegionResult
 
     /**
      * @param string|null $timezone
+     * @return RegionResult
      */
-    public function setTimezone(?string $timezone): void
+    public function setTimezone(?string $timezone): self
     {
         $this->timezone = $timezone;
+
+        return $this;
     }
 
     /**
@@ -381,9 +437,12 @@ class RegionResult
 
     /**
      * @param int|null $updated
+     * @return RegionResult
      */
-    public function setUpdated(?int $updated): void
+    public function setUpdated(?int $updated): self
     {
         $this->updated = $updated;
+
+        return $this;
     }
 }
