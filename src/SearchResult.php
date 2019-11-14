@@ -57,7 +57,7 @@ class SearchResult
      * @param int|null $code
      * @return SearchResult
      */
-    public function setCode(?int $code): self
+    public function setCode(?int $code): SearchResult
     {
         $this->code = $code;
 
@@ -76,7 +76,7 @@ class SearchResult
      * @param string|null $err
      * @return SearchResult
      */
-    public function setErr(?string $err): self
+    public function setErr(?string $err): SearchResult
     {
         $this->err = $err;
 
@@ -95,7 +95,7 @@ class SearchResult
      * @param int|null $numberMin
      * @return SearchResult
      */
-    public function setNumberMin(?int $numberMin): self
+    public function setNumberMin(?int $numberMin): SearchResult
     {
         $this->numberMin = $numberMin;
 
@@ -114,7 +114,7 @@ class SearchResult
      * @param int|null $numberMax
      * @return SearchResult
      */
-    public function setNumberMax(?int $numberMax): self
+    public function setNumberMax(?int $numberMax): SearchResult
     {
         $this->numberMax = $numberMax;
 
@@ -133,7 +133,7 @@ class SearchResult
      * @param int|null $regionId
      * @return SearchResult
      */
-    public function setRegionId(?int $regionId): self
+    public function setRegionId(?int $regionId): SearchResult
     {
         $this->regionId = $regionId;
 
@@ -152,7 +152,7 @@ class SearchResult
      * @param int|null $operatorId
      * @return SearchResult
      */
-    public function setOperatorId(?int $operatorId): self
+    public function setOperatorId(?int $operatorId): SearchResult
     {
         $this->operatorId = $operatorId;
 
@@ -171,7 +171,7 @@ class SearchResult
      * @param string|null $operatorName
      * @return SearchResult
      */
-    public function setOperatorName(?string $operatorName): self
+    public function setOperatorName(?string $operatorName): SearchResult
     {
         $this->operatorName = $operatorName;
 
@@ -190,7 +190,7 @@ class SearchResult
      * @param RegionResult|null $region
      * @return SearchResult
      */
-    public function setRegion(?RegionResult $region): self
+    public function setRegion(?RegionResult $region): SearchResult
     {
         $this->region = $region;
 
