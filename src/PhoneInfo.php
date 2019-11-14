@@ -630,35 +630,35 @@ class PhoneInfo
         $result = new SearchResult();
         if(isset($data['region'])) {
             $region = new RegionResult();
-            $region->setCountry($data['region']['country'])
-                    ->setCountryIsoCode($data['region']['country_iso_code'])
-                    ->setFederalDistrict($data['region']['federal_district'])
-                    ->setFiasCode($data['region']['fias_code'])
-                    ->setFiasLevel($data['region']['fias_level'])
-                    ->setGeoLat($data['region']['geo_lat'])
-                    ->setGeoLon($data['region']['geo_lon'])
-                    ->setKladrId($data['region']['kladr_id'])
-                    ->setOkato($data['region']['okato'])
-                    ->setOktmo($data['region']['oktmo'])
-                    ->setPostalCode($data['region']['postal_code'])
-                    ->setRegionName($data['region']['region'])
-                    ->setRegionFiasId($data['region']['region_fias_id'])
-                    ->setRegionIsoCode($data['region']['region_iso_code'])
-                    ->setRegionKladrId($data['region']['region_kladr_id'])
-                    ->setRegionType($data['region']['region_type'])
-                    ->setResult($data['region']['result'])
-                    ->setTimezone($data['region']['timezone'])
-                    ->setUpdated($data['region']['updated']);
+            $region->setCountry($data['region']['country'] ?? null)
+                    ->setCountryIsoCode($data['region']['country_iso_code'] ?? null)
+                    ->setFederalDistrict($data['region']['federal_district'] ?? null)
+                    ->setFiasCode($data['region']['fias_code'] ?? null)
+                    ->setFiasLevel($data['region']['fias_level'] ?? null)
+                    ->setGeoLat($data['region']['geo_lat'] ?? null)
+                    ->setGeoLon($data['region']['geo_lon'] ?? null)
+                    ->setKladrId($data['region']['kladr_id'] ?? null)
+                    ->setOkato($data['region']['okato'] ?? null)
+                    ->setOktmo($data['region']['oktmo'] ?? null)
+                    ->setPostalCode($data['region']['postal_code'] ?? null)
+                    ->setRegionName($data['region']['region'] ?? null)
+                    ->setRegionFiasId($data['region']['region_fias_id'] ?? null)
+                    ->setRegionIsoCode($data['region']['region_iso_code'] ?? null)
+                    ->setRegionKladrId($data['region']['region_kladr_id'] ?? null)
+                    ->setRegionType($data['region']['region_type'] ?? null)
+                    ->setResult($data['region']['result'] ?? null)
+                    ->setTimezone($data['region']['timezone'] ?? null)
+                    ->setUpdated($data['region']['updated'] ?? null);
 
             $result->setRegion($region);
         }
 
-        $result->setCode($data['code'])
-               ->setRegionId($data['region_id'])
-               ->setNumberMax($data['number_max'])
-               ->setNumberMin($data['number_min'])
-               ->setOperatorId($data['operator_id'])
-               ->setOperatorName($data['operator']);
+        $result->setCode($data['code'] ?? null)
+               ->setRegionId($data['region_id'] ?? null)
+               ->setNumberMax($data['number_max'] ?? null)
+               ->setNumberMin($data['number_min'] ?? null)
+               ->setOperatorId($data['operator_id'] ?? null)
+               ->setOperatorName($data['operator'] ?? null);
 
         return $result;
     }
