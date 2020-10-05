@@ -6,7 +6,6 @@ namespace PhoneLib;
 
 use Exception;
 use GuzzleHttp\Client;
-use libphonenumber\NumberParseException;
 use libphonenumber\PhoneNumberFormat;
 use libphonenumber\PhoneNumberUtil;
 use PDO;
@@ -51,10 +50,10 @@ class PhoneInfo
     ];
 
     private $sources = [
-        "https://www.rossvyaz.ru/docs/articles/Kody_ABC-3kh.csv",
-        "https://www.rossvyaz.ru/docs/articles/Kody_ABC-4kh.csv",
-        "https://www.rossvyaz.ru/docs/articles/Kody_ABC-8kh.csv",
-        "https://www.rossvyaz.ru/docs/articles/Kody_DEF-9kh.csv",
+        "https://rossvyaz.gov.ru/data/ABC-3xx.csv",
+        "https://rossvyaz.gov.ru/data/ABC-4xx.csv",
+        "https://rossvyaz.gov.ru/data/ABC-8xx.csv",
+        "https://rossvyaz.gov.ru/data/DEF-9xx.csv",
     ];
 
     /**
@@ -208,7 +207,8 @@ class PhoneInfo
         if (! $data) {
             $result = new SearchResult();
             $result->setCode(-3)
-                   ->setErr('Ничего не найдено');
+                   ->setErr('Ничего не найдено')
+                   ->setLibphonenumberData($phoneData);
 
             return $result;
         }
@@ -229,7 +229,7 @@ class PhoneInfo
         $st->execute([$data['region_id']]);
         $data['region'] = $st->fetchAll(PDO::FETCH_KEY_PAIR);
 
-        return $this->formatDataToResult($data);
+        return $this->formatDataToResult($data)->setLibphonenumberData($phoneData);
     }
 
     public function update()
@@ -273,8 +273,17 @@ class PhoneInfo
         foreach ($this->sources as $url) {
             $this->logger->debug('Updating: '.$url);
 
+            $context = stream_context_create(
+                [
+                    'ssl' => [
+                        "verify_peer"      => false,
+                        "verify_peer_name" => false,
+                    ],
+                ]
+            );
+
             $insCount = 0;
-            $fp = fopen($url, "r");
+            $fp = fopen($url, "r", false, $context);
             if ($fp) {
                 while (!feof($fp)) {
                     $rowData = fgetcsv($fp, 0, ';');

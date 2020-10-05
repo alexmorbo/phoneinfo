@@ -4,6 +4,8 @@
 namespace PhoneLib;
 
 
+use libphonenumber\PhoneNumber;
+
 /**
  * Class SearchResult
  * @package PhoneLib
@@ -66,6 +68,11 @@ class SearchResult
     private $region;
 
     /**
+     * @var PhoneNumber|null
+     */
+    private $libphonenumberData;
+
+    /**
      * @return int
      */
     public function getCode(): int
@@ -125,7 +132,7 @@ class SearchResult
     /**
      * @return int
      */
-    public function getCountryCode(): int
+    public function getCountryCode(): ?int
     {
         return $this->countryCode;
     }
@@ -289,6 +296,25 @@ class SearchResult
     public function setRegion(?RegionResult $region): SearchResult
     {
         $this->region = $region;
+
+        return $this;
+    }
+
+    /**
+     * @return PhoneNumber|null
+     */
+    public function getLibphonenumberData(): ?PhoneNumber
+    {
+        return $this->libphonenumberData;
+    }
+
+    /**
+     * @param PhoneNumber|null $libphonenumberData
+     * @return $this
+     */
+    public function setLibphonenumberData(?PhoneNumber $libphonenumberData): self
+    {
+        $this->libphonenumberData = $libphonenumberData;
 
         return $this;
     }

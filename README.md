@@ -25,7 +25,7 @@ $library = new PhoneInfo();
 ```
 - Get information about phone
 ```
-$info = $library->search('79213333333');
+$info = $library->search('79014315596');
 ```
 - Profit
 ```
@@ -33,10 +33,10 @@ PhoneLib\SearchResult Object
 (
     [code:PhoneLib\SearchResult:private] => 901
     [err:PhoneLib\SearchResult:private] =>
-    [number:PhoneLib\SearchResult:private] => 79014315596
+    [number:PhoneLib\SearchResult:private] => 79014300001
     [countryCode:PhoneLib\SearchResult:private] => 7
-    [nationalFormat:PhoneLib\SearchResult:private] => 8 (901) 431-55-96
-    [internationalFormat:PhoneLib\SearchResult:private] => +7 901 431-55-96
+    [nationalFormat:PhoneLib\SearchResult:private] => 8 (901) 430-00-01
+    [internationalFormat:PhoneLib\SearchResult:private] => +7 901 430-00-01
     [numberMin:PhoneLib\SearchResult:private] => 79014300000
     [numberMax:PhoneLib\SearchResult:private] => 79014399999
     [regionId:PhoneLib\SearchResult:private] => 3408
@@ -63,6 +63,18 @@ PhoneLib\SearchResult Object
             [result:PhoneLib\RegionResult:private] => Свердловская обл
             [timezone:PhoneLib\RegionResult:private] => UTC+5
             [updated:PhoneLib\RegionResult:private] => 1573643700
+        )
+    [libphonenumberData:PhoneLib\SearchResult:private] => libphonenumber\PhoneNumber Object
+        (
+            [countryCode:protected] => 7
+            [nationalNumber:protected] => 9014315596
+            [extension:protected] => 
+            [italianLeadingZero:protected] => 
+            [rawInput:protected] => 
+            [countryCodeSource:protected] => 4
+            [preferredDomesticCarrierCode:protected] => 
+            [hasNumberOfLeadingZeros:protected] => 
+            [numberOfLeadingZeros:protected] => 1
         )
 
 )

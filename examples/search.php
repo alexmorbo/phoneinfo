@@ -15,7 +15,7 @@ $options = [
 ];
 
 $library = new PhoneInfo($options);
-print_r($library->search('79213333333'));
+print_r($library->search('79213000001'));
 //Array
 //(
 //    [code] => 921

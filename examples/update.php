@@ -11,10 +11,10 @@ $logger->pushHandler(new StreamHandler('php://stdout', Logger::DEBUG));
 
 $options = [
     'logger' => $logger,
-    'dadata' => [
-        'api_key' => '', // Your dadata api key
-        'secret' => '', // Your dadata api secret
-    ],
+//    'dadata' => [
+//        'api_key' => '', // Your dadata api key
+//        'secret' => '', // Your dadata api secret
+//    ],
 ];
 
 $library = new PhoneInfo($options);
