@@ -652,4 +652,12 @@ class PhoneInfo
 
         return $result;
     }
+
+    /**
+     * @return PhoneNumberUtil|null
+     */
+    public function getLibphonenumber(): ?PhoneNumberUtil
+    {
+        return $this->libphonenumber;
+    }
 }
