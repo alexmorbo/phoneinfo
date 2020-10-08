@@ -1,9 +1,9 @@
 # Phone standardization library
-**PhoneInfo** is a php library to get information by russian phone number.
+**PhoneInfo** is a php library to get information by russian and kazakhstan phone number.
 
 ## Goal
-Goal of this project is to get information about russian phone easy and free. 
-Regional information taken from https://dadata.ru
+Goal of this project is to get information about russian and kazakhstan phone easy and free. 
+Regional information about russian phones taken from https://dadata.ru
 
 ## Examples
 Examples located at example directory.
@@ -25,7 +25,7 @@ $library = new PhoneInfo();
 ```
 - Get information about phone
 ```
-$info = $library->search('79014315596');
+$info = $library->search('79014300001');
 ```
 - Profit
 ```

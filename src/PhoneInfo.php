@@ -50,10 +50,20 @@ class PhoneInfo
     ];
 
     private $sources = [
-        "https://rossvyaz.gov.ru/data/ABC-3xx.csv",
-        "https://rossvyaz.gov.ru/data/ABC-4xx.csv",
-        "https://rossvyaz.gov.ru/data/ABC-8xx.csv",
-        "https://rossvyaz.gov.ru/data/DEF-9xx.csv",
+        "RU" => [
+            "https://rossvyaz.gov.ru/data/ABC-3xx.csv",
+            "https://rossvyaz.gov.ru/data/ABC-4xx.csv",
+            "https://rossvyaz.gov.ru/data/ABC-8xx.csv",
+            "https://rossvyaz.gov.ru/data/DEF-9xx.csv",
+        ],
+        "KZ" => [
+            __DIR__.'/../storage/data/kz.csv',
+        ],
+    ];
+
+    private $sourcesPrefix = [
+        "RU" => '7',
+        "KZ" => '7',
     ];
 
     /**
@@ -243,6 +253,7 @@ class PhoneInfo
             'create table regions_tmp (id INTEGER, region TEXT)',
             'create table operators_tmp (id INTEGER, operator TEXT)',
             'create table data_tmp ('.
+                'prefix INTEGER, '.
                 'code INTEGER, '.
                 'number_min INTEGER, '.
                 'number_max INTEGER, '.
@@ -263,6 +274,7 @@ class PhoneInfo
 
         $regions = $this->db->query('select region, id from regions')->fetchAll(PDO::FETCH_KEY_PAIR);
         $operators = $this->db->query('select operator, id from operators')->fetchAll(PDO::FETCH_KEY_PAIR);
+        $countryByRegion = [];
 
         if ($this->dadata) {
             $this->updateRegionData($regions);
@@ -270,69 +282,73 @@ class PhoneInfo
 
         $this->db->query("begin");
 
-        foreach ($this->sources as $url) {
-            $this->logger->debug('Updating: '.$url);
+        foreach ($this->sources as $countryCode => $urls) {
+            foreach ($urls as $url) {
+                $this->logger->debug('['.$countryCode.'] Updating: '.$url);
 
-            $context = stream_context_create(
-                [
-                    'ssl' => [
-                        "verify_peer"      => false,
-                        "verify_peer_name" => false,
-                    ],
-                ]
-            );
+                $context = stream_context_create(
+                    [
+                        'ssl' => [
+                            "verify_peer"      => false,
+                            "verify_peer_name" => false,
+                        ],
+                    ]
+                );
 
-            $insCount = 0;
-            $fp = fopen($url, "r", false, $context);
-            if ($fp) {
-                while (!feof($fp)) {
-                    $rowData = fgetcsv($fp, 0, ';');
-                    $code = trim($rowData[0]);
-                    if ($code) {
-                        $from = trim($rowData[1]);
-                        $to = trim($rowData[2]);
-                        $count = trim($rowData[3]);
-                        $operatorName = trim($rowData[4]);
-                        $regionData = mb_convert_encoding(trim($rowData[5]), 'UTF-8');
-                        $regionName = json_encode(explode('|', $regionData), JSON_UNESCAPED_UNICODE);
+                $insCount = 0;
+                $fp = fopen($url, "r", false, $context);
+                if ($fp) {
+                    while (!feof($fp)) {
+                        $rowData = fgetcsv($fp, 0, ';');
+                        $code = trim($rowData[0]);
+                        if ($code && $code !== 'АВС/ DEF') {
+                            $from = trim($rowData[1]);
+                            $to = trim($rowData[2]);
+                            $count = trim($rowData[3]);
+                            $operatorName = trim($rowData[4]);
+                            $regionData = mb_convert_encoding(trim($rowData[5]), 'UTF-8');
+                            $regionName = json_encode(explode('|', $regionData), JSON_UNESCAPED_UNICODE);
 
-                        /**
-                         * Регионы
-                         */
-                        if (empty($regions[$regionName])) {
-                            $regions[$regionName] = count($regions) + 1;
+                            /**
+                             * Регионы
+                             */
+                            if (empty($regions[$regionName])) {
+                                $regions[$regionName] = count($regions) + 1;
+                            }
+                            $regionId = $regions[$regionName];
+                            $countryByRegion[$regionId] = $countryCode;
+
+                            /**
+                             * Оператор
+                             */
+                            if (empty($operators[$operatorName])) {
+                                $operators[$operatorName] = count($operators) + 1;
+                            }
+                            $operatorId = $operators[$operatorName];
+
+
+                            $st = $this->db->prepare(
+                                'insert into data_tmp (prefix, code, number_min, number_max, number_count, operator_id, region_id) '.
+                                'values (?, ?, ?, ?, ?, ?, ?)'
+                            );
+                            $st->execute([
+                                $this->sourcesPrefix[$countryCode],
+                                $code,
+                                $this->sourcesPrefix[$countryCode].$code.$from,
+                                $this->sourcesPrefix[$countryCode].$code.$to,
+                                $count,
+                                $operatorId,
+                                $regionId,
+                            ]);
+                            $insCount++;
                         }
-                        $regionId = $regions[$regionName];
-
-                        /**
-                         * Оператор
-                         */
-                        if (empty($operators[$operatorName])) {
-                            $operators[$operatorName] = count($operators) + 1;
-                        }
-                        $operatorId = $operators[$operatorName];
-
-
-                        $st = $this->db->prepare(
-                            'insert into data_tmp (code, number_min, number_max, number_count, operator_id, region_id) '.
-                            'values (?, ?, ?, ?, ?, ?)'
-                        );
-                        $st->execute([
-                            $code,
-                            '7'.$code.$from,
-                            '7'.$code.$to,
-                            $count,
-                            $operatorId,
-                            $regionId,
-                        ]);
-                        $insCount++;
                     }
-                }
 
-                $this->logger->debug('Вставлено '.$insCount.' записей');
-            } else {
-                $this->logger->error('Невозможно получить данные из '.$url);
-                continue;
+                    $this->logger->debug('['.$countryCode.'] Вставлено '.$insCount.' записей');
+                } else {
+                    $this->logger->error('['.$countryCode.'] Невозможно получить данные из '.$url);
+                    continue;
+                }
             }
         }
 
