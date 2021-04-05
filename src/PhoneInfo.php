@@ -199,6 +199,11 @@ class PhoneInfo
         }
     }
 
+    public function getDatabase(): PDO
+    {
+        return $this->db;
+    }
+
     private function generateOptions(array $options)
     {
         $this->options = array_merge($this->defaultOptions, $options);
