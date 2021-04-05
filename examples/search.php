@@ -12,6 +12,15 @@ $logger->pushHandler(new StreamHandler('php://stdout', Logger::DEBUG));
 
 $options = [
     'logger' => $logger,
+//    'db_type' => PhoneInfo::DB_MYSQL,
+//    'db_options' => [
+//        'prefix' => 'pi_',
+//        'host' => '127.0.0.1',
+//        'port' => 9906,
+//        'user' => 'root',
+//        'pass' => '123',
+//        'base' => 'phoneinfo',
+//    ],
 ];
 
 $library = new PhoneInfo($options);

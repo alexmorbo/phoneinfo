@@ -1,8 +1,6 @@
 <?php
 
-
 namespace PhoneLib;
-
 
 use Exception;
 use GuzzleHttp\Client;
@@ -22,34 +20,37 @@ class PhoneInfo
     /**
      * @var array
      */
-    private $options;
+    private array $options;
 
     /**
      * @var LoggerInterface
      */
-    private $logger;
+    private LoggerInterface $logger;
 
     /**
      * @var PDO
      */
-    private $db;
+    private PDO $db;
 
     /**
      * @var PhoneNumberUtil|null
      */
-    private $libphonenumber;
+    private ?PhoneNumberUtil $libphonenumber = null;
 
     /**
      * @var array
      */
-    private $defaultOptions = [
-        'logger' => null,
-        'db_type' => self::DB_SQLITE3,
-        'db_path' => __DIR__.'/../storage/default.sqlite',
-        'dadata' => false,
+    private array $defaultOptions = [
+        'logger'     => null,
+        'db_type'    => self::DB_SQLITE3,
+        'db_options' => [
+            'prefix' => 'pi_',
+            'path'   => __DIR__.'/../storage/default.sqlite',
+        ],
+        'dadata'     => false,
     ];
 
-    private $sources = [
+    private array $sources = [
         "RU" => [
             "https://rossvyaz.gov.ru/data/ABC-3xx.csv",
             "https://rossvyaz.gov.ru/data/ABC-4xx.csv",
@@ -61,7 +62,7 @@ class PhoneInfo
         ],
     ];
 
-    private $sourcesPrefix = [
+    private array $sourcesPrefix = [
         "RU" => '7',
         "KZ" => '7',
     ];
@@ -69,19 +70,20 @@ class PhoneInfo
     /**
      * @var bool
      */
-    private $prepared = false;
+    private bool $prepared = false;
 
     /**
      * @var Client
      */
-    private $guzzle;
+    private Client $guzzle;
 
     /**
      * @var bool
      */
-    private $dadata = false;
+    private bool $dadata = false;
 
     const DB_SQLITE3 = 'sqlite3';
+    const DB_MYSQL = 'mysql';
 
     public function __construct(array $options = [])
     {
@@ -110,9 +112,11 @@ class PhoneInfo
             $this->dadata = true;
         }
 
-        $this->guzzle = new Client([
-            'timeout'  => 2.0,
-        ]);
+        $this->guzzle = new Client(
+            [
+                'timeout' => 2.0,
+            ]
+        );
     }
 
     private function initLogger()
@@ -126,26 +130,72 @@ class PhoneInfo
 
     private function initDatabase()
     {
-        if ($this->options['db_type'] === self::DB_SQLITE3) {
-            if (!file_exists($this->options['db_path'])) {
-                file_put_contents($this->options['db_path'], '');
-            }
+        switch ($this->options['db_type']) {
+            case self::DB_SQLITE3:
+                if (
+                    empty($this->options['db_options']['path']) ||
+                    !isset($this->options['db_options']['prefix'])
+                ) {
+                    throw new Exception('Invalid sqlite configuration');
+                }
 
-            $this->logger->debug(
-                sprintf('Using database [%s], location: %s', $this->options['db_type'], $this->options['db_path'])
-            );
+                if (!file_exists($this->options['db_options']['path'])) {
+                    file_put_contents($this->options['db_options']['path'], '');
+                }
 
-            try {
-                $this->db = new PDO(sprintf('sqlite:%s', $this->options['db_path']));
-                $this->db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-                $this->db->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
-            } catch (PDOException $e) {
-                $this->logger->emergency($e->getMessage());
-                throw $e;
-            }
-        } else {
-            $this->logger->emergency('Wrong db type');
-            throw new Exception('Wrong db type');
+                $this->logger->debug(
+                    sprintf('Using database [%s], location: %s', $this->options['db_type'], $this->options['db_options']['path'])
+                );
+
+                try {
+                    $this->db = new PDO(sprintf('sqlite:%s', $this->options['db_options']['path']));
+                    $this->db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+                    $this->db->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
+                } catch (Exception $e) {
+                    $this->logger->emergency($e->getMessage());
+                    throw $e;
+                }
+                break;
+            case self::DB_MYSQL:
+                $this->logger->debug(
+                    sprintf(
+                        'Using database [%s], host: %s',
+                        $this->options['db_type'],
+                        $this->options['db_options']['host']
+                    )
+                );
+
+                try {
+                    if (
+                        empty($this->options['db_options']['host']) ||
+                        empty($this->options['db_options']['base']) ||
+                        empty($this->options['db_options']['user']) ||
+                        empty($this->options['db_options']['pass']) ||
+                        !isset($this->options['db_options']['prefix'])
+                    ) {
+                        throw new Exception('Invalid mysql configuration');
+                    }
+
+                    $this->db = new PDO(
+                        sprintf(
+                            'mysql:host=%s;port=%d;dbname=%s',
+                            $this->options['db_options']['host'],
+                            $this->options['db_options']['port'] ?? 3306,
+                            $this->options['db_options']['base']
+                        ),
+                        $this->options['db_options']['user'],
+                        $this->options['db_options']['pass'],
+                    );
+                    $this->db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+                    $this->db->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
+                } catch (PDOException $e) {
+                    $this->logger->emergency($e->getMessage());
+                    throw $e;
+                }
+                break;
+            default:
+                $this->logger->emergency('Wrong db type');
+                throw new Exception('Wrong db type');
         }
     }
 
@@ -160,11 +210,31 @@ class PhoneInfo
             return;
         }
 
+        $needTables = [
+            $this->options['db_options']['prefix'].'regions',
+            $this->options['db_options']['prefix'].'operators',
+            $this->options['db_options']['prefix'].'data',
+        ];
+
         if ($this->options['db_type'] === self::DB_SQLITE3) {
             $tables = $this->db->query('select * from sqlite_master where type = \'table\'')->fetchAll();
-            $needTables = ['regions', 'operators', 'data'];
             foreach ($tables as $tableData) {
                 $pos = array_search($tableData['tbl_name'], $needTables);
+                if ($pos !== false) {
+                    unset($needTables[$pos]);
+                }
+            }
+
+            if (count($needTables)) {
+                throw new Exception('Need to update database');
+            }
+        }
+
+        if ($this->options['db_type'] === self::DB_MYSQL) {
+            $tables = $this->db->query('show tables')->fetchAll();
+            foreach ($tables as $tableData) {
+                $tableName = array_shift($tableData);
+                $pos = array_search($tableName, $needTables);
                 if ($pos !== false) {
                     unset($needTables[$pos]);
                 }
@@ -191,7 +261,7 @@ class PhoneInfo
         } catch (Exception $e) {
             $result = new SearchResult();
             $result->setCode(-2)
-                   ->setErr($e->getMessage());
+                ->setErr($e->getMessage());
 
             return $result;
         }
@@ -200,7 +270,7 @@ class PhoneInfo
 
         try {
             $phoneData = $this->libphonenumber->parse($digits, $region);
-            $phone = $phoneData->getCountryCode() . $phoneData->getNationalNumber();
+            $phone = $phoneData->getCountryCode().$phoneData->getNationalNumber();
         } catch (Exception $e) {
             $result = new SearchResult();
             $result->setCode(-1)
@@ -209,33 +279,42 @@ class PhoneInfo
             return $result;
         }
 
-        $query = 'select data.code, data.number_min, data.number_max, region_id, operator_id, operator from data, regions, operators '.
-            'where data.region_id = regions.id and data.operator_id = operators.id and '.$phone.' between number_min and number_max';
+        $query = str_replace(
+            '#PREF#',
+            $this->options['db_options']['prefix'],
+            'select #PREF#data.code, #PREF#data.number_min, #PREF#data.number_max, region_id, operator_id, operator '.
+            'from #PREF#data, #PREF#regions, #PREF#operators '.
+            'where #PREF#data.region_id = #PREF#regions.id and #PREF#data.operator_id = #PREF#operators.id and '.$phone.' between number_min and number_max'
+        );
+
         $st = $this->db->query($query);
 
         $data = $st->fetch();
-        if (! $data) {
+        if (!$data) {
             $result = new SearchResult();
             $result->setCode(-3)
-                   ->setErr('Ничего не найдено')
-                   ->setLibphonenumberData($phoneData);
+                ->setErr('Ничего не найдено')
+                ->setLibphonenumberData($phoneData);
 
             return $result;
         }
 
-        $data = array_merge([
-            'phone' => $phone,
-            'countryCode' => $phoneData->getCountryCode(),
-            'format' => [
-                'national' => $this->libphonenumber->format($phoneData, PhoneNumberFormat::NATIONAL),
-                'international' => $this->libphonenumber->format($phoneData, PhoneNumberFormat::INTERNATIONAL),
+        $data = array_merge(
+            [
+                'phone'       => $phone,
+                'countryCode' => $phoneData->getCountryCode(),
+                'format'      => [
+                    'national'      => $this->libphonenumber->format($phoneData, PhoneNumberFormat::NATIONAL),
+                    'international' => $this->libphonenumber->format($phoneData, PhoneNumberFormat::INTERNATIONAL),
+                ],
             ],
-        ], $data);
+            $data
+        );
 
         /**
          * add region data
          */
-        $st = $this->db->prepare('select type, data from region_data where region_id = ?');
+        $st = $this->db->prepare('select type, data from '.$this->options['db_options']['prefix'].'region_data where region_id = ?');
         $st->execute([$data['region_id']]);
         $data['region'] = $st->fetchAll(PDO::FETCH_KEY_PAIR);
 
@@ -246,41 +325,85 @@ class PhoneInfo
     {
         $this->logger->info('Обновление базы данных');
 
-        $queries = [
-            'drop table if exists regions_tmp',
-            'drop table if exists operators_tmp',
-            'drop table if exists data_tmp',
-            'create table regions_tmp (id INTEGER, region TEXT)',
-            'create table operators_tmp (id INTEGER, operator TEXT)',
-            'create table data_tmp ('.
-                'prefix INTEGER, '.
-                'code INTEGER, '.
-                'number_min INTEGER, '.
-                'number_max INTEGER, '.
-                'number_count INTEGER, '.
-                'operator_id INTEGER, '.
-                'region_id INTEGER'.
-            ')',
-            'create table if not exists region_data ('.
-                'region_id integer,'.
-                'type text,'.
-                'data text,'.
-                'constraint region_data_pk primary key (region_id, type)'.
-            ');',
-        ];
+        switch ($this->options['db_type']) {
+            case self::DB_SQLITE3:
+                $queries = [
+                    'drop table if exists '.$this->options['db_options']['prefix'].'regions_tmp',
+                    'drop table if exists '.$this->options['db_options']['prefix'].'operators_tmp',
+                    'drop table if exists '.$this->options['db_options']['prefix'].'data_tmp',
+                    'create table '.$this->options['db_options']['prefix'].'regions_tmp (id INTEGER, region TEXT)',
+                    'create table '.$this->options['db_options']['prefix'].'operators_tmp (id INTEGER, operator TEXT)',
+                    'create table '.$this->options['db_options']['prefix'].'data_tmp ('.
+                    'prefix INTEGER, '.
+                    'code INTEGER, '.
+                    'number_min INTEGER, '.
+                    'number_max INTEGER, '.
+                    'number_count INTEGER, '.
+                    'operator_id INTEGER, '.
+                    'region_id INTEGER'.
+                    ')',
+                    'create table if not exists '.$this->options['db_options']['prefix'].'region_data ('.
+                    'region_id integer,'.
+                    'type text,'.
+                    'data text,'.
+                    'constraint region_data_pk primary key (region_id, type)'.
+                    ');',
+                ];
+                break;
+            case self::DB_MYSQL:
+                $queries = [
+                    'drop table if exists '.$this->options['db_options']['prefix'].'regions_tmp',
+                    'drop table if exists '.$this->options['db_options']['prefix'].'operators_tmp',
+                    'drop table if exists '.$this->options['db_options']['prefix'].'data_tmp',
+                    'create table '.$this->options['db_options']['prefix'].'regions_tmp (id int(11) NOT NULL, region varchar(255) NOT NULL) ENGINE=\'InnoDB\'',
+                    'create table '.$this->options['db_options']['prefix'].'operators_tmp (id int(11) NOT NULL, operator varchar(255) NOT NULL) ENGINE=\'InnoDB\'',
+                    'create table '.$this->options['db_options']['prefix'].'data_tmp ('.
+                    'prefix tinyint(3) NOT NULL, '.
+                    'code smallint(5) NOT NULL, '.
+                    'number_min bigint(20) NOT NULL, '.
+                    'number_max bigint(20) NOT NULL, '.
+                    'number_count int(11) NOT NULL, '.
+                    'operator_id int(11) NOT NULL, '.
+                    'region_id int(11) NOT NULL'.
+                    ')',
+                    'create table if not exists '.$this->options['db_options']['prefix'].'region_data ('.
+                    'region_id int(11) NOT NULL,'.
+                    'type varchar(50) NOT NULL,'.
+                    'data varchar(255) NOT NULL,'.
+                    'constraint region_data_pk primary key (region_id, type)'.
+                    ');',
+                ];
+                break;
+        }
         foreach ($queries as $query) {
             $this->db->query($query);
         }
 
-        $regions = $this->db->query('select region, id from regions')->fetchAll(PDO::FETCH_KEY_PAIR);
-        $operators = $this->db->query('select operator, id from operators')->fetchAll(PDO::FETCH_KEY_PAIR);
-        $countryByRegion = [];
+        try {
+            $regions = $this->db
+                ->query(
+                    'select region, id from '.$this->options['db_options']['prefix'].'regions'
+                )->fetchAll(PDO::FETCH_KEY_PAIR);
+        } catch (PDOException $e) {
+            $regions = [];
+        }
+
+        try {
+            $operators = $this->db
+                ->query(
+                    'select operator, id from '.$this->options['db_options']['prefix'].'operators'
+                )->fetchAll(PDO::FETCH_KEY_PAIR);
+        } catch (PDOException $e) {
+            $operators = [];
+        }
+
+//        $countryByRegion = [];
 
         if ($this->dadata) {
             $this->updateRegionData($regions);
         }
 
-        $this->db->query("begin");
+        $this->db->query("BEGIN");
 
         foreach ($this->sources as $countryCode => $urls) {
             foreach ($urls as $url) {
@@ -314,32 +437,40 @@ class PhoneInfo
                              */
                             if (empty($regions[$regionName])) {
                                 $regions[$regionName] = count($regions) + 1;
+                                $this->logger->debug('New region', ['regionName' => $regionName]);
                             }
                             $regionId = $regions[$regionName];
-                            $countryByRegion[$regionId] = $countryCode;
+//                            $countryByRegion[$regionId] = $countryCode;
 
                             /**
                              * Оператор
                              */
                             if (empty($operators[$operatorName])) {
                                 $operators[$operatorName] = count($operators) + 1;
+                                $this->logger->debug('New operator', ['operator' => $operatorName]);
                             }
                             $operatorId = $operators[$operatorName];
 
-
-                            $st = $this->db->prepare(
-                                'insert into data_tmp (prefix, code, number_min, number_max, number_count, operator_id, region_id) '.
-                                'values (?, ?, ?, ?, ?, ?, ?)'
-                            );
-                            $st->execute([
-                                $this->sourcesPrefix[$countryCode],
-                                $code,
-                                $this->sourcesPrefix[$countryCode].$code.$from,
-                                $this->sourcesPrefix[$countryCode].$code.$to,
-                                $count,
-                                $operatorId,
-                                $regionId,
-                            ]);
+                            try {
+                                $st = $this->db->prepare(
+                                    'insert into '.$this->options['db_options']['prefix'].'data_tmp '.
+                                    '(prefix, code, number_min, number_max, number_count, operator_id, region_id) '.
+                                    'values (?, ?, ?, ?, ?, ?, ?)'
+                                );
+                                $st->execute(
+                                    [
+                                        $this->sourcesPrefix[$countryCode],
+                                        $code,
+                                        $this->sourcesPrefix[$countryCode].$code.$from,
+                                        $this->sourcesPrefix[$countryCode].$code.$to,
+                                        $count,
+                                        $operatorId,
+                                        $regionId,
+                                    ]
+                                );
+                            } catch (PDOException $e) {
+                                $this->logger->critical('PDO: '.$e->getMessage(), ['code' => $e->getCode()]);
+                            }
                             $insCount++;
                         }
                     }
@@ -353,34 +484,42 @@ class PhoneInfo
         }
 
         foreach ($operators as $operatorName => $id) {
-            $st = $this->db->prepare('insert into operators_tmp (id, operator) values (:id, :operator)');
-            $st->execute([
-                'id' => $id,
-                'operator' => $operatorName,
-            ]);
+            $st = $this->db->prepare(
+                'insert into '.$this->options['db_options']['prefix'].'operators_tmp (id, operator) values (:id, :operator)'
+            );
+            $st->execute(
+                [
+                    'id'       => $id,
+                    'operator' => $operatorName,
+                ]
+            );
         }
 
         foreach ($regions as $regionName => $id) {
-            $st = $this->db->prepare('insert into regions_tmp (id, region) values (:id, :region)');
-            $st->execute([
-                'id' => $id,
-                'region' => $regionName,
-            ]);
+            $st = $this->db->prepare(
+                'insert into '.$this->options['db_options']['prefix'].'regions_tmp (id, region) values (:id, :region)'
+            );
+            $st->execute(
+                [
+                    'id'     => $id,
+                    'region' => $regionName,
+                ]
+            );
         }
 
-        $this->db->query("end");
+        $this->db->query("COMMIT");
         $queries = [
-            'drop table if exists data',
-            'drop table if exists regions',
-            'drop table if exists operators',
+            'drop table if exists '.$this->options['db_options']['prefix'].'data',
+            'drop table if exists '.$this->options['db_options']['prefix'].'regions',
+            'drop table if exists '.$this->options['db_options']['prefix'].'operators',
 
-            'ALTER TABLE data_tmp rename to data',
-            'ALTER TABLE operators_tmp rename to operators',
-            'ALTER TABLE regions_tmp rename to regions',
+            'ALTER TABLE '.$this->options['db_options']['prefix'].'data_tmp RENAME to '.$this->options['db_options']['prefix'].'data',
+            'ALTER TABLE '.$this->options['db_options']['prefix'].'operators_tmp RENAME to '.$this->options['db_options']['prefix'].'operators',
+            'ALTER TABLE '.$this->options['db_options']['prefix'].'regions_tmp RENAME to '.$this->options['db_options']['prefix'].'regions',
 
-            'CREATE INDEX data_idx ON data(number_min, number_max)',
-            'CREATE INDEX operators_idx ON operators(id)',
-            'CREATE INDEX regions_idx ON regions(id)',
+            'CREATE INDEX data_idx ON '.$this->options['db_options']['prefix'].'data(number_min, number_max)',
+            'CREATE INDEX operators_idx ON '.$this->options['db_options']['prefix'].'operators(id)',
+            'CREATE INDEX regions_idx ON '.$this->options['db_options']['prefix'].'regions(id)',
         ];
 
         foreach ($queries as $query) {
@@ -531,9 +670,9 @@ class PhoneInfo
             /**
              * Check last update
              */
-            $st = $this->db->prepare('select data from region_data where region_id = ? and type = "updated"');
+            $st = $this->db->prepare('select data from '.$this->options['db_options']['prefix'].'region_data where region_id = ? and type = "updated"');
             $st->execute([$regionId]);
-            $lastUpdate = (int) $st->fetch(PDO::FETCH_COLUMN);
+            $lastUpdate = (int)$st->fetch(PDO::FETCH_COLUMN);
 
             // cache to 150 days
             if ($lastUpdate && $lastUpdate + 12960000 > time()) {
@@ -541,32 +680,36 @@ class PhoneInfo
                 continue;
             }
 
-//            $cacheFile = __DIR__ . '/../storage/cache/region_'.$regionId.'.json';
-//            if (! file_exists($cacheFile)) {
-                $response = $this->guzzle->post('https://cleaner.dadata.ru/api/v1/clean/address', [
+            //            $cacheFile = __DIR__ . '/../storage/cache/region_'.$regionId.'.json';
+            //            if (! file_exists($cacheFile)) {
+            $response = $this->guzzle->post(
+                'https://cleaner.dadata.ru/api/v1/clean/address',
+                [
                     'headers' => [
-                        'Content-Type' => 'application/json',
+                        'Content-Type'  => 'application/json',
                         'Authorization' => 'Token '.$this->options['dadata']['api_key'],
-                        'X-Secret' => $this->options['dadata']['secret'],
+                        'X-Secret'      => $this->options['dadata']['secret'],
                     ],
-                    'body' => json_encode([$search])
-                ]);
+                    'body'    => json_encode([$search]),
+                ]
+            );
 
-                $addressData = json_decode($response->getBody()->getContents(), true);
+            $addressData = json_decode($response->getBody()->getContents(), true);
 
-//                file_put_contents(
-//                    $cacheFile,
-//                    json_encode($addressData, JSON_UNESCAPED_UNICODE)
-//                );
-//            } else {
-//                $addressData = json_decode(file_get_contents($cacheFile), true);
-//            }
+            //                file_put_contents(
+            //                    $cacheFile,
+            //                    json_encode($addressData, JSON_UNESCAPED_UNICODE)
+            //                );
+            //            } else {
+            //                $addressData = json_decode(file_get_contents($cacheFile), true);
+            //            }
 
             if ($addressData[0]['qc'] > 0) {
                 $this->logger->warning(
-                    '[dadata] Невозможно стандартизировать адрес: '.$search, [
+                    '[dadata] Невозможно стандартизировать адрес: '.$search,
+                    [
                         'regionId' => $regionId,
-                        'qc' => $addressData[0]['qc']
+                        'qc'       => $addressData[0]['qc'],
                     ]
                 );
                 continue;
@@ -600,29 +743,34 @@ class PhoneInfo
                 }
             }
 
-            $st = $this->db->prepare('delete from region_data where region_id = ?');
-            $st->execute([
-                $regionId
-            ]);
+            $st = $this->db->prepare('delete from '.$this->options['db_options']['prefix'].'region_data where region_id = ?');
+            $st->execute(
+                [
+                    $regionId,
+                ]
+            );
 
             if ($regionData) {
                 $regionData['updated'] = time();
 
                 foreach ($regionData as $key => $value) {
                     $st = $this->db->prepare(
-                        'insert into region_data (region_id, type, data) values (?, ?, ?)'
+                        'insert into '.$this->options['db_options']['prefix'].'region_data (region_id, type, data) values (?, ?, ?)'
                     );
 
-                    $st->execute([
-                        $regionId,
-                        $key,
-                        $value
-                    ]);
+                    $st->execute(
+                        [
+                            $regionId,
+                            $key,
+                            $value,
+                        ]
+                    );
                 }
             }
 
             $this->logger->debug(
-                '[dadata] Адрес стандартизирован: '.$search, ['keys' => array_keys($regionData)]
+                '[dadata] Адрес стандартизирован: '.$search,
+                ['keys' => array_keys($regionData)]
             );
         }
     }
@@ -630,41 +778,41 @@ class PhoneInfo
     private function formatDataToResult(array $data): SearchResult
     {
         $result = new SearchResult();
-        if(isset($data['region'])) {
+        if (isset($data['region'])) {
             $region = new RegionResult();
             $region->setCountry($data['region']['country'] ?? null)
-                    ->setCountryIsoCode($data['region']['country_iso_code'] ?? null)
-                    ->setFederalDistrict($data['region']['federal_district'] ?? null)
-                    ->setFiasCode($data['region']['fias_code'] ?? null)
-                    ->setFiasLevel($data['region']['fias_level'] ?? null)
-                    ->setGeoLat($data['region']['geo_lat'] ?? null)
-                    ->setGeoLon($data['region']['geo_lon'] ?? null)
-                    ->setKladrId($data['region']['kladr_id'] ?? null)
-                    ->setOkato($data['region']['okato'] ?? null)
-                    ->setOktmo($data['region']['oktmo'] ?? null)
-                    ->setPostalCode($data['region']['postal_code'] ?? null)
-                    ->setRegionName($data['region']['region'] ?? null)
-                    ->setRegionFiasId($data['region']['region_fias_id'] ?? null)
-                    ->setRegionIsoCode($data['region']['region_iso_code'] ?? null)
-                    ->setRegionKladrId($data['region']['region_kladr_id'] ?? null)
-                    ->setRegionType($data['region']['region_type'] ?? null)
-                    ->setResult($data['region']['result'] ?? null)
-                    ->setTimezone($data['region']['timezone'] ?? null)
-                    ->setUpdated($data['region']['updated'] ?? null);
+                ->setCountryIsoCode($data['region']['country_iso_code'] ?? null)
+                ->setFederalDistrict($data['region']['federal_district'] ?? null)
+                ->setFiasCode($data['region']['fias_code'] ?? null)
+                ->setFiasLevel($data['region']['fias_level'] ?? null)
+                ->setGeoLat($data['region']['geo_lat'] ?? null)
+                ->setGeoLon($data['region']['geo_lon'] ?? null)
+                ->setKladrId($data['region']['kladr_id'] ?? null)
+                ->setOkato($data['region']['okato'] ?? null)
+                ->setOktmo($data['region']['oktmo'] ?? null)
+                ->setPostalCode($data['region']['postal_code'] ?? null)
+                ->setRegionName($data['region']['region'] ?? null)
+                ->setRegionFiasId($data['region']['region_fias_id'] ?? null)
+                ->setRegionIsoCode($data['region']['region_iso_code'] ?? null)
+                ->setRegionKladrId($data['region']['region_kladr_id'] ?? null)
+                ->setRegionType($data['region']['region_type'] ?? null)
+                ->setResult($data['region']['result'] ?? null)
+                ->setTimezone($data['region']['timezone'] ?? null)
+                ->setUpdated($data['region']['updated'] ?? null);
 
             $result->setRegion($region);
         }
 
         $result->setCode($data['code'])
-               ->setNumber($data['phone'])
-               ->setCountryCode($data['countryCode'])
-               ->setNationalFormat($data['format']['national'] ?? null)
-               ->setInternationalFormat($data['format']['international'] ?? null)
-               ->setRegionId($data['region_id'] ?? null)
-               ->setNumberMax($data['number_max'] ?? null)
-               ->setNumberMin($data['number_min'] ?? null)
-               ->setOperatorId($data['operator_id'] ?? null)
-               ->setOperatorName($data['operator'] ?? null);
+            ->setNumber($data['phone'])
+            ->setCountryCode($data['countryCode'])
+            ->setNationalFormat($data['format']['national'] ?? null)
+            ->setInternationalFormat($data['format']['international'] ?? null)
+            ->setRegionId($data['region_id'] ?? null)
+            ->setNumberMax($data['number_max'] ?? null)
+            ->setNumberMin($data['number_min'] ?? null)
+            ->setOperatorId($data['operator_id'] ?? null)
+            ->setOperatorName($data['operator'] ?? null);
 
         return $result;
     }
