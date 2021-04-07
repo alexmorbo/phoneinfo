@@ -4,7 +4,7 @@
     "keywords": ["dadata", "phone", "timezone", "standardization"],
     "license": "LGPL-3.0-or-later",
     "require": {
-        "php": "^7.4",
+        "php": "^7.4|^8.0",
         "ext-mbstring": "*",
         "ext-pdo_sqlite": "^7.2",
         "ext-pdo": "*",
